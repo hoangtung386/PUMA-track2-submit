@@ -22,7 +22,12 @@ def load_checkpoint(
     checkpoint_path = Path(path)
     if not checkpoint_path.is_file():
         raise FileNotFoundError(f"Missing Prometheus checkpoint: {checkpoint_path}")
-    payload = torch.load(checkpoint_path, map_location=map_location, weights_only=False)
+    payload = torch.load(
+        checkpoint_path,
+        map_location=map_location,
+        weights_only=False,
+        mmap=True,
+    )
     if not isinstance(payload, dict):
         raise ValueError("Prometheus checkpoint payload must be a dictionary")
     if payload.get("schema_version") != CHECKPOINT_SCHEMA_VERSION:
