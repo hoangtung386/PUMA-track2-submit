@@ -28,10 +28,13 @@ def load_predictor(
 ) -> PrometheusPredictor:
     """Load a compatible checkpoint and return an evaluation-mode predictor."""
     resolved_device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
-    checkpoint = load_checkpoint(checkpoint_path, resolved_device)
+    # Checkpoints also contain optimizer and RNG state. Keep the payload on CPU,
+    # load only inference weights, then move the model to the target device.
+    checkpoint = load_checkpoint(checkpoint_path, "cpu")
     assert_checkpoint_compatible(checkpoint, config)
     model = build_model(config)
     model.load_state_dict(select_inference_state(checkpoint), strict=True)
+    del checkpoint
     return PrometheusPredictor(
         model=model,
         device=resolved_device,
