@@ -30,7 +30,8 @@ def validate_submission_outputs(tissue_path: str | Path, nuclei_path: str | Path
     with nuclei.open(encoding="utf-8") as file_obj:
         data = json.load(file_obj)
     # The Grand Challenge "Multiple polygons" interface schema validates the
-    # output before evaluation; a missing type/version silently fails there.
+    # output before evaluation. It is strict (additionalProperties: false), so a
+    # missing type/version OR any unexpected key silently fails there. Mirror it.
     if data.get("type") != "Multiple polygons":
         raise ValueError('Nuclei output must set type == "Multiple polygons"')
     version = data.get("version")
@@ -39,7 +40,15 @@ def validate_submission_outputs(tissue_path: str | Path, nuclei_path: str | Path
     polygons = data.get("polygons")
     if not isinstance(polygons, list):
         raise ValueError("Nuclei output must contain a polygons list")
+    allowed_top_keys = {"type", "version", "polygons", "name"}
+    extra_top = set(data) - allowed_top_keys
+    if extra_top:
+        raise ValueError(f"Nuclei output has unexpected top-level keys: {sorted(extra_top)}")
+    allowed_polygon_keys = {"name", "seed_point", "path_points", "sub_type", "groups", "probability"}
     for index, polygon in enumerate(polygons):
+        extra_keys = set(polygon) - allowed_polygon_keys
+        if extra_keys:
+            raise ValueError(f"Polygon {index} has schema-forbidden keys: {sorted(extra_keys)}")
         if not isinstance(polygon.get("name"), str):
             raise ValueError(f"Polygon {index} has no class name")
         path_points = polygon.get("path_points", [])
@@ -49,7 +58,5 @@ def validate_submission_outputs(tissue_path: str | Path, nuclei_path: str | Path
             raise ValueError(f"Polygon {index} path points must be 3-element [x, y, z]")
         if len(polygon.get("seed_point", [])) < 3:
             raise ValueError(f"Polygon {index} must contain a 3-element seed_point")
-        if not isinstance(polygon.get("score", 1), (int, float)):
-            raise ValueError(f"Polygon {index} has an invalid score")
         if not isinstance(polygon.get("probability", 1), (int, float)):
             raise ValueError(f"Polygon {index} has an invalid probability")
