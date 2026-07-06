@@ -34,7 +34,13 @@ def test_discovery_rejects_images_in_two_contract_directories(tmp_path: Path) ->
 
 
 def test_output_paths_preserve_input_filename(tmp_path: Path) -> None:
-    paths = SubmissionPaths((tmp_path,), tmp_path, Path("config"), Path("model"))
+    paths = SubmissionPaths(
+        (tmp_path,),
+        tmp_path,
+        Path("config"),
+        Path("nuclei.ckpt"),
+        Path("tissue.ckpt"),
+    )
 
     assert paths.nuclei_output_path.name == "melanoma-10-class-nuclei-segmentation.json"
     assert paths.tissue_output_path(Path("uuid.tif")).relative_to(tmp_path) == Path(
