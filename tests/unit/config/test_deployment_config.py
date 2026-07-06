@@ -9,6 +9,7 @@ def test_submission_config_loads() -> None:
     config = load_config("configs/submission.toml")
     assert config.model.name == "prometheus_multitask_v1"
     assert config.model.num_nucleus_types == 10
+    assert config.model.drop_path_rate == 0.2
     assert config.input.image_size == 1024
     assert config.postprocess.confidence_threshold == 0.25
 
