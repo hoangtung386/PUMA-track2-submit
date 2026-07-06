@@ -1,18 +1,9 @@
-scikit-image
-scipy
-opencv-python
-tqdm
-zarr
-segmentation-models-pytorch
-toml
-numcodecs
-timm==0.9.6
-acvl_utils
-pandas
-dynamic_network_architectures
-nibabel
-matplotlib
-seaborn
-tifffile
-Pillow
-SimpleITK
+# Runtime dependencies. pyproject.toml is the source of truth.
+numpy==2.4.6; python_version >= "3.11"
+numpy==2.2.6; python_version < "3.11"
+opencv-python-headless==4.13.0.92
+tifffile==2026.3.3; python_version >= "3.11"
+tifffile==2025.5.10; python_version < "3.11"
+timm==1.0.27
+tomli>=2.0; python_version < "3.11"
+torch==2.4.1

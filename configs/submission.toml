@@ -1,0 +1,21 @@
+[model]
+name = "prometheus_multitask_v1"
+in_channels = 3
+num_tissue_classes = 6
+num_nucleus_types = 10
+encoder_dims = [96, 192, 384, 768]
+encoder_depths = [3, 3, 9, 3]
+tissue_decoder_depths = [1, 2, 2]
+drop_path_rate = 0.1
+nuclei_feature_stride = 4
+
+[model.context]
+enabled = true
+
+[input]
+image_size = 1024
+
+[postprocess]
+confidence_threshold = 0.25
+max_detections = 1000
+local_max_kernel = 3
