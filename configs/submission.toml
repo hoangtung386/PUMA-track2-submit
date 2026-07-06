@@ -6,7 +6,7 @@ num_nucleus_types = 10
 encoder_dims = [96, 192, 384, 768]
 encoder_depths = [3, 3, 9, 3]
 tissue_decoder_depths = [1, 2, 2]
-drop_path_rate = 0.1
+drop_path_rate = 0.2
 nuclei_feature_stride = 4
 
 [model.context]
