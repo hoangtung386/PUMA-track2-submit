@@ -1,5 +1,70 @@
-nnunetv2/nnunetv2_hist/nnUNet_results/Dataset526_Mark/nnUNetTrainer__nnUNetPlans__2d/fold_4/checkpoint_best.pth
-input/
+# Python bytecode and tool caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.hypothesis/
+.tox/
+.nox/
+.cache/
+
+# Coverage, test, build, and packaging artifacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+build/
+dist/
+wheelhouse/
+*.egg-info/
+*.egg
+*.whl
+
+# Virtual environments and local configuration
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+!.env.example
+*.local
+
+# Editors, agents, and operating systems
+.agents/
+.codex/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Runtime data and diagnostics
 output/
-.idea
-checkpoint/train/
+runs/
+logs/
+tmp/
+temp/
+*.log
+*.pid
+*.prof
+
+# Private model artifacts
+models/*.ckpt
+models/*.pt
+models/*.pth
+models/*.safetensors
+checkpoints/
+weights/
+
+# Exported images and checksums
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.sha256
