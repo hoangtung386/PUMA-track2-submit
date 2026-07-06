@@ -4,10 +4,12 @@ The Grand Challenge output interface for ``melanoma-10-class-nuclei-segmentation
 validates against the platform's "Multiple polygons" JSON schema *before* the
 challenge evaluator runs. That schema requires a top-level ``type`` and
 ``version`` plus per-polygon ``seed_point``/``sub_type``/``groups``/``probability``
-fields, with 3-element ``[x, y, z]`` path points. The evaluator itself reads
-``polygons[].name``, an optional ``polygons[].score`` and ``polygons[].path_points``
-(taking only the first two coordinates), so ``score`` is emitted alongside the
-schema-required ``probability``.
+fields, with 3-element ``[x, y, z]`` path points. The schema is strict
+(``additionalProperties: false``), so ONLY those keys may appear — a ``score``
+key is rejected. The evaluator reads ``polygons[].name``, ``polygons[].path_points``
+(first two coordinates) and an optional ``polygons[].score`` that defaults to 1
+when absent; since the schema forbids ``score``, every detection is scored 1,
+matching the official baseline.
 """
 
 from __future__ import annotations
@@ -55,7 +57,6 @@ def write_nuclei_json(
     polygons = []
     for detection in detections:
         points = _path_points(detection)
-        score = float(detection.confidence)
         polygons.append(
             {
                 "name": _class_name(detection.label, track),
@@ -63,8 +64,7 @@ def write_nuclei_json(
                 "path_points": points,
                 "sub_type": "",
                 "groups": [],
-                "probability": score,
-                "score": score,
+                "probability": float(detection.confidence),
             }
         )
     payload = {
