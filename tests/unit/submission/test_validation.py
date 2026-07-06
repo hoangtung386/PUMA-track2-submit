@@ -49,13 +49,19 @@ def test_validate_outputs_rejects_invalid_track_class(tmp_path: Path) -> None:
     nuclei_path.write_text(
         json.dumps(
             {
+                "type": "Multiple polygons",
+                "version": {"major": 1, "minor": 0},
                 "polygons": [
                     {
                         "name": "nuclei_other",
+                        "seed_point": [1, 1, 0],
                         "score": 1.0,
-                        "path_points": [[1, 1], [2, 1], [2, 2], [1, 2]],
+                        "probability": 1.0,
+                        "sub_type": "",
+                        "groups": [],
+                        "path_points": [[1, 1, 0], [2, 1, 0], [2, 2, 0], [1, 2, 0]],
                     }
-                ]
+                ],
             }
         ),
         encoding="utf-8",
