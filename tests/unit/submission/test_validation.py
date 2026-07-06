@@ -55,7 +55,6 @@ def test_validate_outputs_rejects_invalid_track_class(tmp_path: Path) -> None:
                     {
                         "name": "nuclei_other",
                         "seed_point": [1, 1, 0],
-                        "score": 1.0,
                         "probability": 1.0,
                         "sub_type": "",
                         "groups": [],
