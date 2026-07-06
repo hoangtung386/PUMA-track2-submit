@@ -18,17 +18,18 @@ Verified gates at handoff:
 ## Release blockers
 
 Source code is ready for team ownership. A production submission artifact is
-not ready until the private model artifact is supplied:
+not ready until both private model artifacts are supplied:
 
 ```text
-models/prometheus.ckpt
+models/best_primary.ckpt
+models/best_tissue.ckpt
 ```
 
 The receiving team must then complete these release gates:
 
-1. Run `scripts/check_checkpoint.py` and record checkpoint SHA-256 plus EMA/raw
-   selection in `models/README.md`.
-2. Confirm that the checkpoint's embedded model config exactly matches
+1. Run `scripts/check_checkpoint.py` and record both checkpoint SHA-256 values
+   plus EMA/raw selection in `models/README.md`.
+2. Confirm that both checkpoints' embedded model configs exactly match
    `configs/submission.toml`.
 3. Confirm the official evaluator input directory and JSON schema against the
    challenge version being submitted.
