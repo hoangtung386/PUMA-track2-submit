@@ -24,7 +24,8 @@ def test_nuclei_writer_emits_official_multiple_polygons_schema(tmp_path) -> None
     assert polygon["sub_type"] == ""
     assert polygon["groups"] == []
     assert polygon["probability"] == 0.75
-    assert polygon["score"] == 0.75
+    # The Grand Challenge schema is strict: no extra keys such as "score".
+    assert "score" not in polygon
 
 
 def test_track_one_merges_plasma_cells_into_lymphocytes(tmp_path) -> None:
