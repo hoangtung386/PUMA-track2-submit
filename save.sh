@@ -30,7 +30,13 @@ output_filename="${SCRIPT_DIR}/${container_tag}_${formatted_build_info}.tar.gz"
 # Get the estimated size of the Docker image
 image_size=$(docker inspect --format='{{ .Size }}' "$container_tag")
 
-# Save the Docker container and gzip it
-docker save "$container_tag" | pv -s "$image_size" | gzip -c > "$output_filename"
+# Save the Docker container and gzip it. Use pv for a progress bar when it is
+# installed; otherwise fall back to a plain pipe so the save still succeeds.
+if command -v pv >/dev/null 2>&1; then
+    docker save "$container_tag" | pv -s "$image_size" | gzip -c > "$output_filename"
+else
+    echo "pv not found; saving without a progress bar (image size: ${image_size} bytes)"
+    docker save "$container_tag" | gzip -c > "$output_filename"
+fi
 
 echo "Container saved as ${output_filename}"
