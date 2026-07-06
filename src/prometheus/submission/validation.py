@@ -29,13 +29,27 @@ def validate_submission_outputs(tissue_path: str | Path, nuclei_path: str | Path
         raise ValueError(f"Missing nuclei output: {nuclei}")
     with nuclei.open(encoding="utf-8") as file_obj:
         data = json.load(file_obj)
+    # The Grand Challenge "Multiple polygons" interface schema validates the
+    # output before evaluation; a missing type/version silently fails there.
+    if data.get("type") != "Multiple polygons":
+        raise ValueError('Nuclei output must set type == "Multiple polygons"')
+    version = data.get("version")
+    if not isinstance(version, dict) or "major" not in version or "minor" not in version:
+        raise ValueError("Nuclei output must contain a version object with major/minor")
     polygons = data.get("polygons")
     if not isinstance(polygons, list):
         raise ValueError("Nuclei output must contain a polygons list")
     for index, polygon in enumerate(polygons):
         if not isinstance(polygon.get("name"), str):
             raise ValueError(f"Polygon {index} has no class name")
-        if len(polygon.get("path_points", [])) < 3:
+        path_points = polygon.get("path_points", [])
+        if len(path_points) < 3:
             raise ValueError(f"Polygon {index} must contain at least three path points")
+        if any(len(point) < 3 for point in path_points):
+            raise ValueError(f"Polygon {index} path points must be 3-element [x, y, z]")
+        if len(polygon.get("seed_point", [])) < 3:
+            raise ValueError(f"Polygon {index} must contain a 3-element seed_point")
         if not isinstance(polygon.get("score", 1), (int, float)):
             raise ValueError(f"Polygon {index} has an invalid score")
+        if not isinstance(polygon.get("probability", 1), (int, float)):
+            raise ValueError(f"Polygon {index} has an invalid probability")
