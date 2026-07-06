@@ -18,7 +18,7 @@ git diff --check
 bash -n scripts/*.sh
 ```
 
-When `models/prometheus.ckpt` is available, also run:
+When both selected checkpoints are available, also run:
 
 ```bash
 PYTHONPATH=src python scripts/check_checkpoint.py
