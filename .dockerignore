@@ -60,4 +60,4 @@ temp
 *.zip
 *.sha256
 
-# Do not ignore models/prometheus.ckpt: Dockerfile copies the release artifact.
+# Do not ignore the two selected files under models/: Dockerfile copies them.
