@@ -38,6 +38,7 @@ class PrometheusPredictor:
 
     @torch.no_grad()
     def predict(self, images: torch.Tensor, metadata: list[ImageMeta]) -> MultitaskPrediction:
+        """Predict both tasks from one multitask checkpoint."""
         output = self.model(images.to(self.device))
         if not isinstance(output, MultitaskOutput):
             raise TypeError("PrometheusPredictor expects MultitaskOutput")
@@ -52,3 +53,29 @@ class PrometheusPredictor:
             local_max_kernel=self.local_max_kernel,
         )
         return MultitaskPrediction(restored, nuclei)
+
+    @torch.no_grad()
+    def predict_tissue(self, images: torch.Tensor, metadata: list[ImageMeta]) -> list[np.ndarray]:
+        """Return only tissue masks while preserving the checkpoint's backbone."""
+        output = self._forward(images)
+        masks = output.tissue_logits.argmax(dim=1)
+        return [restore_mask(mask, meta) for mask, meta in zip(masks, metadata, strict=True)]
+
+    @torch.no_grad()
+    def predict_nuclei(self, images: torch.Tensor, metadata: list[ImageMeta]) -> list[list[Detection]]:
+        """Return only nuclei decoded from the selected checkpoint."""
+        output = self._forward(images)
+        return decode_nuclei(
+            output,
+            metadata,
+            stride=self.nuclei_stride,
+            threshold=self.confidence_threshold,
+            max_detections=self.max_detections,
+            local_max_kernel=self.local_max_kernel,
+        )
+
+    def _forward(self, images: torch.Tensor) -> MultitaskOutput:
+        output = self.model(images.to(self.device))
+        if not isinstance(output, MultitaskOutput):
+            raise TypeError("PrometheusPredictor expects MultitaskOutput")
+        return output
