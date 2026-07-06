@@ -27,3 +27,17 @@ def test_predictor_restores_source_space() -> None:
     assert len(result.nuclei[0]) == 1
     assert result.nuclei[0][0].label is NucleusClass.HISTIOCYTE
     assert result.nuclei[0][0].centroid == (16.0, 0.0)
+
+
+def test_task_specific_prediction_methods() -> None:
+    meta = ImageMeta("x", (16, 32), (32, 32), (16, 32), (1.0, 1.0), (0, 8))
+    predictor = PrometheusPredictor(_FakePrometheus(), nuclei_stride=4)
+    image = torch.zeros(1, 3, 32, 32)
+
+    tissue = predictor.predict_tissue(image, [meta])
+    nuclei = predictor.predict_nuclei(image, [meta])
+
+    assert tissue[0].shape == (16, 32)
+    assert np.all(tissue[0] == 2)
+    assert len(nuclei[0]) == 1
+    assert nuclei[0][0].label is NucleusClass.HISTIOCYTE
