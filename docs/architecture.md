@@ -17,14 +17,16 @@ puma_submission.prepare   -- TIFF read, letterbox, valid-pixel normalization
 prometheus.api             -- strict config/checkpoint/model composition
         |
         v
-PrometheusNet              -- tissue and nuclei heads in one forward pass
+fold 2 best-primary PrometheusNet -- nuclei decoder --> Track 2 JSON
         |
-        +--> tissue mask restoration --> TIFF serializer
+        v
+release model/GPU cache
         |
-        +--> nuclei decoder -----------> Track 2 JSON serializer
-                                              |
-                                              v
-                                 structural and bounds validation
+        v
+fold 1 best-tissue PrometheusNet  -- tissue restoration --> TIFF
+                                                        |
+                                                        v
+                                           structural/bounds validation
 ```
 
 ## Ownership boundaries
@@ -41,14 +43,16 @@ PrometheusNet              -- tissue and nuclei heads in one forward pass
 
 ## Invariants
 
-- The checkpoint model configuration must equal `configs/submission.toml`
-  exactly. State dictionaries load with `strict=True`.
+- Both checkpoint model configurations must equal `configs/submission.toml`
+  exactly. Both state dictionaries load with `strict=True`.
 - EMA weights are preferred when present, matching Prometheus inference.
 - Input is converted to RGB float32, letterboxed without distortion and
   normalized only over non-padding pixels.
 - Tissue predictions are restored with nearest-neighbor interpolation and
   explicitly remapped from model order to submission values.
 - Nuclei coordinates and boxes are restored to source `(x, y)` pixel space.
+- The nuclei-selected fold is released before loading the tissue-selected fold,
+  limiting peak GPU memory to one full model at a time.
 - The container returns success only after both outputs pass validation.
 
 ## Deliberately excluded
