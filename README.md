@@ -1,8 +1,10 @@
 # PUMA Track 2 — Prometheus submission
 
 Dockerized inference for the PUMA melanoma challenge using the multitask
-`PrometheusNet`. A single model produces the six-class tissue mask and ten-class
-nuclei detections.
+`PrometheusNet`. Two task-specific k-fold checkpoints are evaluated
+sequentially: the ten-class nuclei detections come from the nuclei-selected fold
+(`best_primary.ckpt`) and the six-class tissue mask from the tissue-selected
+fold (`best_tissue.ckpt`).
 
 The model architecture and checkpoint contract are vendored from Prometheus
 commit `a35cf22b472fb473c8a127394491f7b5a409414d`. See `THIRD_PARTY.md` for source
@@ -17,8 +19,8 @@ Current handoff status and the remaining release-only gates are recorded in
 ## Project status
 
 The source runtime is ready for engineering handoff. A production submission
-image is not release-ready until the real `models/prometheus.ckpt` passes the
-checkpoint compatibility check and the offline container smoke test.
+image is not release-ready until both selected checkpoints pass compatibility
+checks and the offline container smoke test.
 
 ## Repository layout
 
@@ -46,15 +48,18 @@ requires a GPU to match the intended evaluation environment.
 
 ## Required checkpoint
 
-Copy the selected schema-v2 checkpoint to:
+Copy the two selected schema-v2 checkpoints to:
 
 ```text
-models/prometheus.ckpt
+models/best_primary.ckpt  # fold 2, nuclei selection
+models/best_tissue.ckpt   # fold 1, tissue selection
 ```
 
-The weight is intentionally not committed. Before building, verify that
-`configs/submission.toml` exactly matches the model config stored in the
-checkpoint:
+The weights are intentionally not committed. Each file contains a complete
+multitask model, but runtime evaluation is task-specific: nuclei are decoded
+from `best_primary.ckpt`, then that model is released before tissue is generated
+from `best_tissue.ckpt`. Before building, verify that `configs/submission.toml`
+exactly matches the model config stored in both checkpoints:
 
 ```bash
 PYTHONPATH=src python scripts/check_checkpoint.py
@@ -118,7 +123,8 @@ local diagnostics:
 | `PUMA_INPUT_DIR` | auto-detect the two supported challenge directories |
 | `PUMA_OUTPUT_DIR` | `/output` |
 | `PUMA_CONFIG` | `/opt/app/configs/submission.toml` |
-| `PUMA_CHECKPOINT` | `/opt/app/models/prometheus.ckpt` |
+| `PUMA_NUCLEI_CHECKPOINT` | `/opt/app/models/best_primary.ckpt` |
+| `PUMA_TISSUE_CHECKPOINT` | `/opt/app/models/best_tissue.ckpt` |
 
 When `PUMA_INPUT_DIR` is set, only that directory is searched. Without an
 override, finding primary TIFFs in both supported challenge directories is an
