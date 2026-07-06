@@ -14,9 +14,16 @@ def test_nuclei_writer_emits_official_multiple_polygons_schema(tmp_path) -> None
         path,
     )
     data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["type"] == "Multiple polygons"
+    assert data["version"] == {"major": 1, "minor": 0}
     polygon = data["polygons"][0]
     assert polygon["name"] == "nuclei_tumor"
     assert len(polygon["path_points"]) == 4
+    assert all(len(point) == 3 for point in polygon["path_points"])
+    assert polygon["seed_point"] == polygon["path_points"][0]
+    assert polygon["sub_type"] == ""
+    assert polygon["groups"] == []
+    assert polygon["probability"] == 0.75
     assert polygon["score"] == 0.75
 
 
