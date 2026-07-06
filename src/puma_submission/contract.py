@@ -19,7 +19,8 @@ class SubmissionPaths:
     input_directories: tuple[Path, ...]
     output_directory: Path
     config_path: Path
-    checkpoint_path: Path
+    nuclei_checkpoint_path: Path
+    tissue_checkpoint_path: Path
 
     @classmethod
     def from_environment(cls) -> SubmissionPaths:
@@ -29,7 +30,18 @@ class SubmissionPaths:
             input_directories=input_directories,
             output_directory=Path(os.environ.get("PUMA_OUTPUT_DIR", "/output")),
             config_path=Path(os.environ.get("PUMA_CONFIG", "/opt/app/configs/submission.toml")),
-            checkpoint_path=Path(os.environ.get("PUMA_CHECKPOINT", "/opt/app/models/prometheus.ckpt")),
+            nuclei_checkpoint_path=Path(
+                os.environ.get(
+                    "PUMA_NUCLEI_CHECKPOINT",
+                    "/opt/app/models/best_primary.ckpt",
+                )
+            ),
+            tissue_checkpoint_path=Path(
+                os.environ.get(
+                    "PUMA_TISSUE_CHECKPOINT",
+                    "/opt/app/models/best_tissue.ckpt",
+                )
+            ),
         )
 
     @property
