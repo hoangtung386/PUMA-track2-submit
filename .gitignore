@@ -68,3 +68,4 @@ weights/
 *.tgz
 *.zip
 *.sha256
+REFACTOR_GUIDE.md
