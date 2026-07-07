@@ -19,3 +19,9 @@ image_size = 1024
 confidence_threshold = 0.25
 max_detections = 1000
 local_max_kernel = 3
+# Minimum predicted-class softmax probability to keep a detection. 0.0 keeps the
+# current behavior; raise it (or set a per-class list via class_confidence_thresholds)
+# after running scripts/tune_nuclei_threshold.py against the k-fold validation set.
+class_confidence_threshold = 0.0
+# class_confidence_thresholds = [t_tumor, t_stroma, t_endothelium, t_histiocyte,
+#   t_melanophage, t_lymphocyte, t_plasma_cell, t_neutrophil, t_apoptosis, t_epithelium]
