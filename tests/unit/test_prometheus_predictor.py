@@ -41,3 +41,32 @@ def test_task_specific_prediction_methods() -> None:
     assert np.all(tissue[0] == 2)
     assert len(nuclei[0]) == 1
     assert nuclei[0][0].label is NucleusClass.HISTIOCYTE
+
+
+def test_global_class_confidence_threshold_filters_detections() -> None:
+    meta = ImageMeta("x", (16, 32), (32, 32), (16, 32), (1.0, 1.0), (0, 8))
+    image = torch.zeros(1, 3, 32, 32)
+
+    # The fake predicts histiocyte with ~1.0 class probability; a near-1 threshold drops it.
+    kept = PrometheusPredictor(_FakePrometheus(), nuclei_stride=4, class_confidence_threshold=0.5)
+    dropped = PrometheusPredictor(_FakePrometheus(), nuclei_stride=4, class_confidence_threshold=0.999999)
+
+    assert len(kept.predict_nuclei(image, [meta])[0]) == 1
+    assert len(dropped.predict_nuclei(image, [meta])[0]) == 0
+
+
+def test_per_class_threshold_targets_one_class() -> None:
+    meta = ImageMeta("x", (16, 32), (32, 32), (16, 32), (1.0, 1.0), (0, 8))
+    image = torch.zeros(1, 3, 32, 32)
+    # The single detection is histiocyte (index 3). A high threshold only on that
+    # class prunes it, while high thresholds on other classes leave it untouched.
+    prune_histiocyte = [0.0] * 10
+    prune_histiocyte[3] = 0.999999
+    prune_others = [0.999999] * 10
+    prune_others[3] = 0.0
+
+    pruned = PrometheusPredictor(_FakePrometheus(), nuclei_stride=4, class_confidence_threshold=prune_histiocyte)
+    spared = PrometheusPredictor(_FakePrometheus(), nuclei_stride=4, class_confidence_threshold=prune_others)
+
+    assert len(pruned.predict_nuclei(image, [meta])[0]) == 0
+    assert len(spared.predict_nuclei(image, [meta])[0]) == 1
