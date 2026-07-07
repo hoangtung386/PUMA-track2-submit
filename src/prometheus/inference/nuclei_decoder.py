@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import torch
 import torch.nn.functional as F
 
@@ -17,12 +19,25 @@ def decode_nuclei(
     threshold: float = 0.25,
     max_detections: int = 1000,
     local_max_kernel: int = 3,
+    class_confidence_threshold: float | Sequence[float] = 0.0,
 ) -> list[list[Detection]]:
     scores = output.nuclei_center_logits.sigmoid()
     pooled = F.max_pool2d(scores, local_max_kernel, stride=1, padding=local_max_kernel // 2)
     scores = scores * scores.eq(pooled)
     batch_predictions = []
     classes = list(NucleusClass)
+    device = output.nuclei_class_logits.device
+    if isinstance(class_confidence_threshold, (int, float)):
+        class_threshold_vector = torch.full((len(classes),), float(class_confidence_threshold), device=device)
+    else:
+        class_threshold_vector = torch.as_tensor(
+            list(class_confidence_threshold), dtype=torch.float32, device=device
+        )
+        if class_threshold_vector.numel() != len(classes):
+            raise ValueError(
+                f"class_confidence_threshold sequence must have {len(classes)} entries, "
+                f"got {class_threshold_vector.numel()}"
+            )
     for batch_index in range(scores.shape[0]):
         flat = scores[batch_index].flatten()
         count = min(max_detections, flat.numel())
@@ -41,6 +56,15 @@ def decode_nuclei(
         labels = predicted_classes
         sizes = output.nuclei_sizes[batch_index, :, ys, xs].transpose(0, 1) * stride
         boxes = torch.cat((centers - sizes / 2, centers + sizes / 2), dim=1)
+        # Drop detections whose predicted class probability is below the (optionally
+        # per-class) threshold. This prunes the low-confidence class assignments that
+        # dominate false positives without a per-detection score to fall back on.
+        class_keep = class_confidence >= class_threshold_vector[predicted_classes]
+        values = values[class_keep]
+        class_confidence = class_confidence[class_keep]
+        labels = labels[class_keep]
+        centers = centers[class_keep]
+        boxes = boxes[class_keep]
         if metadata is not None:
             meta = metadata[batch_index]
             pad_x, pad_y = meta.pad_xy
