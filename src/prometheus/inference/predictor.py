@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy as np
@@ -28,6 +29,7 @@ class PrometheusPredictor:
         confidence_threshold: float = 0.25,
         max_detections: int = 1000,
         local_max_kernel: int = 3,
+        class_confidence_threshold: float | Sequence[float] = 0.0,
     ) -> None:
         self.device = torch.device(device)
         self.model = model.to(self.device).eval()
@@ -35,6 +37,7 @@ class PrometheusPredictor:
         self.confidence_threshold = confidence_threshold
         self.max_detections = max_detections
         self.local_max_kernel = local_max_kernel
+        self.class_confidence_threshold = class_confidence_threshold
 
     @torch.no_grad()
     def predict(self, images: torch.Tensor, metadata: list[ImageMeta]) -> MultitaskPrediction:
@@ -51,6 +54,7 @@ class PrometheusPredictor:
             threshold=self.confidence_threshold,
             max_detections=self.max_detections,
             local_max_kernel=self.local_max_kernel,
+            class_confidence_threshold=self.class_confidence_threshold,
         )
         return MultitaskPrediction(restored, nuclei)
 
@@ -72,6 +76,7 @@ class PrometheusPredictor:
             threshold=self.confidence_threshold,
             max_detections=self.max_detections,
             local_max_kernel=self.local_max_kernel,
+            class_confidence_threshold=self.class_confidence_threshold,
         )
 
     def _forward(self, images: torch.Tensor) -> MultitaskOutput:
