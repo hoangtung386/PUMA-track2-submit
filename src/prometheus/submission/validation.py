@@ -25,6 +25,12 @@ def validate_submission_outputs(tissue_path: str | Path, nuclei_path: str | Path
         missing_tags = {tag for tag in required_tags if tag not in page.tags}
         if missing_tags:
             raise ValueError(f"Tissue output is missing TIFF tags: {sorted(missing_tags)}")
+        # panimg (Grand Challenge's importer) cannot derive voxel spacing unless
+        # the resolution unit is inch (2) or centimeter (3); "none" (1) fails with
+        # "Voxel width could not be determined".
+        resolution_unit = page.tags["ResolutionUnit"].value if "ResolutionUnit" in page.tags else None
+        if int(resolution_unit or 0) not in (2, 3):
+            raise ValueError(f"Tissue output ResolutionUnit must be inch or centimeter, got {resolution_unit}")
     if not nuclei.is_file():
         raise ValueError(f"Missing nuclei output: {nuclei}")
     with nuclei.open(encoding="utf-8") as file_obj:
