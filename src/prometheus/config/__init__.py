@@ -58,6 +58,14 @@ class PostprocessConfig:
     confidence_threshold: float = 0.25
     max_detections: int = 1000
     local_max_kernel: int = 3
+    # Minimum softmax probability of the predicted nucleus class. The challenge
+    # schema forbids per-detection scores, so the evaluator treats every emitted
+    # detection as equally confident; this threshold is the only lever to trade
+    # recall for precision by dropping low-confidence class assignments. A scalar
+    # applies to all classes; a per-class list (length num_nucleus_types) lets a
+    # single over-predicted class (e.g. histiocyte) be pruned independently.
+    class_confidence_threshold: float = 0.0
+    class_confidence_thresholds: list[float] = field(default_factory=list)
 
     def validate(self) -> None:
         if not 0 < self.confidence_threshold < 1:
@@ -66,6 +74,23 @@ class PostprocessConfig:
             raise ValueError("Maximum detections must be positive")
         if self.local_max_kernel <= 0 or self.local_max_kernel % 2 == 0:
             raise ValueError("Local-max kernel must be a positive odd integer")
+        if not 0.0 <= self.class_confidence_threshold < 1.0:
+            raise ValueError("Class-confidence threshold must be in [0, 1)")
+        if self.class_confidence_thresholds and any(
+            not 0.0 <= value < 1.0 for value in self.class_confidence_thresholds
+        ):
+            raise ValueError("Per-class class-confidence thresholds must be in [0, 1)")
+
+    def resolved_class_thresholds(self, num_classes: int) -> list[float] | float:
+        """Return a per-class threshold list when configured, else the scalar."""
+        if not self.class_confidence_thresholds:
+            return self.class_confidence_threshold
+        if len(self.class_confidence_thresholds) != num_classes:
+            raise ValueError(
+                f"class_confidence_thresholds must have {num_classes} entries, "
+                f"got {len(self.class_confidence_thresholds)}"
+            )
+        return list(self.class_confidence_thresholds)
 
 
 @dataclass
