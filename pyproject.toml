@@ -7,7 +7,7 @@ name = "puma-prometheus-submission"
 version = "1.0.0"
 description = "PrometheusNet inference container for PUMA Track 2"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 license = {file = "LICENSE"}
 dependencies = [
     "numpy==2.4.6; python_version >= '3.11'",

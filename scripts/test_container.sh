@@ -7,7 +7,12 @@ readonly IMAGE_TAG="${1:-puma-prometheus-track2:latest}"
 readonly INPUT_DIR="${2:-${PROJECT_DIR}/test}"
 readonly OUTPUT_DIR="${3:-${PROJECT_DIR}/output}"
 
-mapfile -t INPUTS < <(find "${INPUT_DIR}" -maxdepth 1 -type f -iname '*.tif' ! -iname '*_context.tif' | sort)
+mapfile -t INPUTS < <(
+    find "${INPUT_DIR}" -maxdepth 1 -type f \
+        \( -iname '*.tif' -o -iname '*.tiff' \) \
+        ! -iname '*_context.tif' ! -iname '*_context.tiff' \
+        | sort
+)
 if [[ "${#INPUTS[@]}" -ne 1 ]]; then
     echo "Expected exactly one primary TIFF in ${INPUT_DIR}; found ${#INPUTS[@]}" >&2
     exit 1

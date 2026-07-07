@@ -64,7 +64,10 @@ def test_run_selects_nuclei_and_tissue_from_different_checkpoints(
             calls.append((self.task, "tissue"))
             return [np.zeros((2, 2), dtype=np.uint8)]
 
-    monkeypatch.setattr("puma_submission.run.load_config", lambda _: SimpleNamespace(input=SimpleNamespace(image_size=2)))
+    monkeypatch.setattr(
+        "puma_submission.run.load_config",
+        lambda _: SimpleNamespace(input=SimpleNamespace(image_size=2)),
+    )
     monkeypatch.setattr("puma_submission.run.prepare_image", lambda *_: (torch.zeros(1, 3, 2, 2), object()))
     monkeypatch.setattr(
         "puma_submission.run.load_predictor",

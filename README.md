@@ -33,10 +33,15 @@ src/puma_submission/      PUMA filesystem adapter and end-to-end entry point
 tests/                    Runtime contract and regression tests
 ```
 
+The maintained build, smoke-test, and export workflow lives in `scripts/`.
+The similarly named shell files at the repository root are retained only for
+compatibility with the original challenge template.
+
 ## Prerequisites
 
-Local source checks require Python 3.10 or newer. Building and exercising the
-submission container additionally requires:
+Local source checks require Python 3.10, 3.11, or 3.12. PyTorch 2.4.1 does not
+publish wheels for Python 3.13. Building and exercising the submission
+container additionally requires:
 
 - Docker with `linux/amd64` build support;
 - an NVIDIA GPU and compatible host driver;
@@ -86,22 +91,25 @@ scripts/test_container.sh puma-prometheus-track2:latest ./test ./output
 ```
 
 `scripts/build.sh` runs the strict checkpoint gate before invoking Docker. The
-smoke test expects exactly one primary `.tif` file in the supplied input
-directory, clears the selected output directory, mounts the input read-only,
-runs without network access, and validates the generated files again on the
-host.
+smoke test expects exactly one primary `.tif` or `.tiff` file in the supplied
+input directory, mounts the input read-only, runs without network access, and
+validates the generated files again on the host.
+
+> **Warning:** the smoke-test script deletes and recreates the entire output
+> directory passed as its third argument. Use a dedicated disposable directory;
+> do not point it at a directory containing data you need to keep.
 
 ## Container contract
 
 Primary input path:
 
 ```text
-/input/images/melanoma-wsi/<uuid>.tif
+/input/images/melanoma-wsi/<uuid>.tif  # .tiff is also accepted
 ```
 
 The legacy directory `/input/images/melanoma-whole-slide-image` is accepted as a
 fallback. Exactly one primary TIFF must exist. Files ending in `_context.tif`
-are ignored.
+or `_context.tiff` are ignored.
 
 Outputs:
 

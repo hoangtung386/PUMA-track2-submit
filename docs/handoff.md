@@ -7,7 +7,7 @@ no legacy HoVer-NeXt or nnU-Net runtime.
 
 Verified gates at handoff:
 
-- 28 focused tests pass;
+- 30 focused tests pass;
 - Ruff lint and format checks pass;
 - shell scripts pass `bash -n`;
 - `git diff --check` passes;
