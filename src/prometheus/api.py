@@ -42,6 +42,9 @@ def load_predictor(
         confidence_threshold=config.postprocess.confidence_threshold,
         max_detections=config.postprocess.max_detections,
         local_max_kernel=config.postprocess.local_max_kernel,
+        class_confidence_threshold=config.postprocess.resolved_class_thresholds(
+            config.model.num_nucleus_types
+        ),
     )
 
 
